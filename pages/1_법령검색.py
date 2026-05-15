@@ -27,9 +27,11 @@ if not api_key:
 st.title("⚖️ 법령 검색")
 st.markdown("국가법령정보센터 오픈 API를 활용한 실시간 법령 조회입니다.")
 
-query = st.text_input("검색어를 입력하세요", placeholder="예: 근로기준법, 소득세법")
+with st.form("search_form"):
+    query = st.text_input("검색어를 입력하세요", placeholder="예: 근로기준법, 소득세법")
+    submitted = st.form_submit_button("🔍 검색")
 
-if st.button("🔍 검색", disabled=not query):
+if submitted and query:
     with st.spinner("검색 중..."):
         try:
             params = {"OC": api_key, "target": "law", "type": "XML", "query": query}
