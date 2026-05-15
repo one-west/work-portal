@@ -1,9 +1,18 @@
 import streamlit as st
 import requests
+import urllib3
 import xml.etree.ElementTree as ET
 import pandas as pd
 import os
 from dotenv import load_dotenv
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ko-KR,ko;q=0.9",
+}
 
 st.set_page_config(page_title="법령 검색", page_icon="⚖️", layout="wide")
 
@@ -20,38 +29,25 @@ st.markdown("국가법령정보센터 오픈 API를 활용한 실시간 법령 �
 
 query = st.text_input("검색어를 입력하세요", placeholder="예: 근로기준법, 소득세법")
 
-_LAW_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8",
-    "Referer": "https://www.law.go.kr/",
-}
-
-
-def _law_get(params):
-    try:
-        return requests.get(
-            "https://www.law.go.kr/DRF/lawSearch.do",
-            params=params,
-            headers=_LAW_HEADERS,
-            timeout=15,
-        )
-    except requests.exceptions.ConnectionError:
-        import urllib3
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        return requests.get(
-            "https://www.law.go.kr/DRF/lawSearch.do",
-            params=params,
-            headers=_LAW_HEADERS,
-            timeout=15,
-            verify=False,
-        )
-
-
 if st.button("🔍 검색", disabled=not query):
     with st.spinner("검색 중..."):
         try:
-            resp = _law_get({"OC": api_key, "target": "law", "type": "XML", "query": query})
+            params = {"OC": api_key, "target": "law", "type": "XML", "query": query}
+            try:
+                resp = requests.get(
+                    "https://www.law.go.kr/DRF/lawSearch.do",
+                    params=params,
+                    headers=_HEADERS,
+                    timeout=10,
+                )
+            except requests.exceptions.SSLError:
+                resp = requests.get(
+                    "https://www.law.go.kr/DRF/lawSearch.do",
+                    params=params,
+                    headers=_HEADERS,
+                    timeout=10,
+                    verify=False,
+                )
             resp.raise_for_status()
 
             tree = ET.fromstring(resp.content)
