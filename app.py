@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
+import glob
+import shutil
 from dotenv import load_dotenv
 import OpenDartReader
 import os
@@ -229,7 +231,19 @@ if not api_key:
     st.warning("API 키가 필요합니다. 입력 후 다시 시도하세요.")
     st.stop()
 
-dart = OpenDartReader(api_key)
+# 오늘 날짜 캐시 없으면 기존 캐시 재사용 (Streamlit Cloud 네트워크 타임아웃 방지)
+_cache_dir = "docs_cache"
+_today_cache = os.path.join(_cache_dir, f"opendartreader_corp_codes_{datetime.now().strftime('%Y%m%d')}.pkl")
+if not os.path.exists(_today_cache):
+    _existing = sorted(glob.glob(os.path.join(_cache_dir, "opendartreader_corp_codes_*.pkl")))
+    if _existing:
+        shutil.copy(_existing[-1], _today_cache)
+
+@st.cache_resource
+def init_dart(key):
+    return OpenDartReader(key)
+
+dart = init_dart(api_key)
 
 st.title("📊 DART 재무제표 수집기")
 st.markdown("종목코드를 입력하면 재무제표를 가져옵니다.")
