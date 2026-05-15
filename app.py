@@ -290,6 +290,18 @@ if st.button("📥 재무제표 수집"):
         for code in codes:
             try:
                 df = dart.finstate_all(code, bsns_year=year, reprt_code=report_code)
+                if not (isinstance(df, pd.DataFrame) and not df.empty):
+                    # XBRL 데이터 없을 경우 non-XBRL API로 fallback (연결→별도 순)
+                    parts = []
+                    for fs_div in ("CFS", "OFS"):
+                        try:
+                            fb = dart.finstate(code, year, report_code, fs_div=fs_div)
+                            if isinstance(fb, pd.DataFrame) and not fb.empty:
+                                parts.append(fb)
+                        except Exception:
+                            pass
+                    df = pd.concat(parts, ignore_index=True) if parts else None
+
                 if isinstance(df, pd.DataFrame) and not df.empty:
                     df["조회기업"] = code_name_map.get(code, code)
                     df["조회연도"] = year
