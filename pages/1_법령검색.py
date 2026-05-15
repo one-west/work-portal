@@ -24,8 +24,9 @@ if st.button("🔍 검색", disabled=not query):
     with st.spinner("검색 중..."):
         try:
             resp = requests.get(
-                "http://www.law.go.kr/DRF/lawSearch.do",
+                "https://www.law.go.kr/DRF/lawSearch.do",
                 params={"OC": api_key, "target": "law", "type": "XML", "query": query},
+                headers={"User-Agent": "Mozilla/5.0"},
                 timeout=10,
             )
             resp.raise_for_status()
