@@ -12,6 +12,7 @@ _HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "ko-KR,ko;q=0.9",
+    "Referer": "https://hytc-dart.streamlit.app/",
 }
 
 st.set_page_config(page_title="법령 검색", page_icon="⚖️", layout="wide")
@@ -35,21 +36,14 @@ if submitted and query:
     with st.spinner("검색 중..."):
         try:
             params = {"OC": api_key, "target": "law", "type": "XML", "query": query}
+            _url_https = "https://www.law.go.kr/DRF/lawSearch.do"
+            _url_http = "http://www.law.go.kr/DRF/lawSearch.do"
             try:
-                resp = requests.get(
-                    "https://www.law.go.kr/DRF/lawSearch.do",
-                    params=params,
-                    headers=_HEADERS,
-                    timeout=10,
-                )
+                resp = requests.get(_url_https, params=params, headers=_HEADERS, timeout=10)
             except requests.exceptions.SSLError:
-                resp = requests.get(
-                    "https://www.law.go.kr/DRF/lawSearch.do",
-                    params=params,
-                    headers=_HEADERS,
-                    timeout=10,
-                    verify=False,
-                )
+                resp = requests.get(_url_https, params=params, headers=_HEADERS, timeout=10, verify=False)
+            except requests.exceptions.ConnectionError:
+                resp = requests.get(_url_http, params=params, headers=_HEADERS, timeout=10)
             resp.raise_for_status()
 
             tree = ET.fromstring(resp.content)
