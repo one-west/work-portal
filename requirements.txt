@@ -4,5 +4,5 @@ numpy
 openpyxl
 xlsxwriter
 python-dotenv
-OpenDartReader
+opendartreader
 requests
