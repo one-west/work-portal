@@ -235,8 +235,15 @@ if st.button("📥 재무제표 수집"):
         st.stop()
 
     result_list = []
+    total = len(years) * len(codes)
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    done = 0
+
     for year in years:
         for code in codes:
+            corp_name = code_name_map.get(code, code)
+            status_text.text(f"수집 중... ({done}/{total}) {year} - {corp_name}")
             try:
                 df = dart.finstate_all(code, bsns_year=year, reprt_code=report_code)
                 if not (isinstance(df, pd.DataFrame) and not df.empty):
@@ -251,14 +258,19 @@ if st.button("📥 재무제표 수집"):
                     df = pd.concat(parts, ignore_index=True) if parts else None
 
                 if isinstance(df, pd.DataFrame) and not df.empty:
-                    df["조회기업"] = code_name_map.get(code, code)
+                    df["조회기업"] = corp_name
                     df["조회연도"] = year
                     result_list.append(df)
-                    st.success(f"{year} - {code} 수집 완료")
+                    st.success(f"{year} - {corp_name} 수집 완료")
                 else:
-                    st.warning(f"{year} - {code} 데이터 없음")
+                    st.warning(f"{year} - {corp_name} 데이터 없음")
             except Exception as e:
-                st.error(f"{year} - {code} 오류: {e}")
+                st.error(f"{year} - {corp_name} 오류: {e}")
+            done += 1
+            progress_bar.progress(done / total)
+
+    status_text.empty()
+    progress_bar.empty()
 
     if not result_list:
         st.info("수집된 데이터가 없습니다.")
@@ -273,6 +285,9 @@ if st.button("📥 재무제표 수집"):
 
     file_name = f"dart_finstate_{'_'.join(map(str, years))}.xlsx"
     save_excel_with_comma_format(result_df, file_name)
+
+    st.subheader(f"미리보기 (총 {len(result_df)}행)")
+    st.dataframe(result_df, use_container_width=True, hide_index=True)
 
     with open(file_name, "rb") as f:
         st.download_button(
