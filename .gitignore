@@ -7,7 +7,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.xlsx
-docs_cache
 .streamlit
 
 # C extensions
