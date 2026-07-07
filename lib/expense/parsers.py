@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-from lib.expense.models import Row
+from lib.expense.models import Row, CardInfo
 
 _UNICODE_SPACES = [" ", "﻿", " ", " ", "⁠",
                    "​", "‌", "‍", "　", "­", "\t"]
@@ -84,3 +84,38 @@ def normalize_gukne(df):
             industry=str(x.get("업종명", "")).strip(),
         ))
     return rows
+
+def _find_col(df, keywords):
+    for c in df.columns:
+        name = str(c)
+        if any(k in name for k in keywords):
+            return c
+    return None
+
+def read_card_master(path):
+    p = str(path).lower()
+    if p.endswith(".csv"):
+        return pd.read_csv(path, dtype=str)
+    if p.endswith(".xls"):
+        return pd.read_excel(path, engine="xlrd", dtype=str)
+    return pd.read_excel(path, dtype=str)
+
+def parse_card_master(df):
+    col_card = _find_col(df, ["카드번호"])
+    col_name = _find_col(df, ["출장자", "이름", "성명"])
+    col_region = _find_col(df, ["지역", "출장지"])
+    col_label = _find_col(df, ["용도", "비고", "구분"])
+    out = {}
+    if col_card is None:
+        return out
+    for _, x in df.iterrows():
+        key = normalize_card_no(x.get(col_card, ""))
+        if not key:
+            continue
+        out[key] = CardInfo(
+            card_no=key,
+            traveler=str(x.get(col_name, "")).strip() if col_name else "",
+            region=str(x.get(col_region, "")).strip() if col_region else "",
+            label=str(x.get(col_label, "")).strip() if col_label else "",
+        )
+    return out

@@ -1,4 +1,4 @@
-from lib.expense.parsers import to_number, normalize_card_no, extract_cards, normalize_haewoe, normalize_gukne
+from lib.expense.parsers import to_number, normalize_card_no, extract_cards, normalize_haewoe, normalize_gukne, parse_card_master
 from lib.expense.models import Row
 import pandas as pd
 
@@ -65,3 +65,14 @@ def test_normalize_gukne_maps_and_filters_cancel():
     assert r.industry == "편의점"
     assert r.krw == 10000.0
     assert r.usd == 0 and r.idr == 0
+
+def test_parse_card_master_detects_columns():
+    df = pd.DataFrame([
+        {"카드번호": "4074-6721-9739-3852", "용도": "해외출장4", "출장자명": "김동현", "지역": "미국 조지아"},
+        {"카드번호": "4074-6752-5283-8828", "용도": "해외출장14", "출장자명": "권용건", "지역": "미국 조지아"},
+    ])
+    m = parse_card_master(df)
+    info = m["4074672197393852"]
+    assert info.traveler == "김동현"
+    assert info.region == "미국 조지아"
+    assert info.label == "해외출장4"
