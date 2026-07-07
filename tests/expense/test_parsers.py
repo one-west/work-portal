@@ -1,4 +1,4 @@
-from lib.expense.parsers import to_number, normalize_card_no, extract_cards, normalize_haewoe
+from lib.expense.parsers import to_number, normalize_card_no, extract_cards, normalize_haewoe, normalize_gukne
 from lib.expense.models import Row
 import pandas as pd
 
@@ -50,3 +50,18 @@ def test_normalize_haewoe():
     assert r.krw == 64936.0
     assert r.shop == "ENMARKET 1330"
     assert r.user == "공용"
+
+def test_normalize_gukne_maps_and_filters_cancel():
+    df = pd.DataFrame([
+        {"승인일": "2026.06.01", "가맹점명": "GS25", "업종명": "편의점", "카드번호": "111",
+         "이용자명": "공용", "승인금액": "10,000", "상태": "정상"},
+        {"승인일": "2026.06.02", "가맹점명": "취소건", "업종명": "편의점", "카드번호": "111",
+         "이용자명": "공용", "승인금액": "5,000", "상태": "취소"},
+    ])
+    rows = normalize_gukne(df)
+    assert len(rows) == 1          # 취소건 제외
+    r = rows[0]
+    assert r.source == "gukne"
+    assert r.industry == "편의점"
+    assert r.krw == 10000.0
+    assert r.usd == 0 and r.idr == 0
