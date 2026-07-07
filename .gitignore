@@ -20,7 +20,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/ 는 이 프로젝트의 소스 패키지(lib/expense) 라서 무시하지 않는다.
 lib64/
 parts/
 sdist/
