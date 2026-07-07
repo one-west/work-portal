@@ -4,10 +4,48 @@ import numpy as np
 import re
 import glob
 import shutil
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 import OpenDartReader
 import os
 from datetime import datetime
+
+# =========================
+#  OpenDartReader 네트워크 방어
+# =========================
+# OpenDartReader는 모든 HTTP 호출을 `requests.get(url, params=params)` 형태로
+# timeout/재시도 없이 수행한다. Streamlit Cloud(미국 서버)에서 한국 DART 서버
+# (opendart.fss.or.kr)로의 TCP 연결이 간헐적으로 막혀 connect timeout이 난다.
+# 방어가 없으면 첫 호출이 OS 기본 연결 대기(약 2분)만큼 멈춰 수집 루프가
+# "0/N"에서 정지한 것처럼 보인다. (법령 페이지가 겪은 것과 동일한 문제)
+#
+# requests.get 은 매번 임시 Session을 만들어 Session.request 를 호출하므로,
+# Session.request 를 감싸 (1) 기본 timeout, (2) 연결 재시도(backoff),
+# (3) 브라우저 User-Agent 를 주입한다.
+_DART_HTTP_TIMEOUT = 15
+_DART_RETRY = Retry(
+    total=3, connect=3, read=2, backoff_factor=0.5, allowed_methods=["GET"]
+)
+_orig_session_request = requests.Session.request
+
+
+def _session_request_with_timeout(self, method, url, **kwargs):
+    kwargs.setdefault("timeout", _DART_HTTP_TIMEOUT)
+    self.mount("https://", HTTPAdapter(max_retries=_DART_RETRY))
+    self.mount("http://", HTTPAdapter(max_retries=_DART_RETRY))
+    headers = kwargs.get("headers") or {}
+    headers.setdefault(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    )
+    kwargs["headers"] = headers
+    return _orig_session_request(self, method, url, **kwargs)
+
+
+requests.Session.request = _session_request_with_timeout
 
 _UNICODE_SPACES = [
     " ", "﻿", " ", " ", " ",
