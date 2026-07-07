@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "rules": [
+    {"order": 1, "match": "contains", "keyword": "FOOD LION|COSTCO|WAL-MART|WALMART|KROGER|PUBLIX|TARGET", "category": "", "applies_to": "haewoe", "note": "마트 대량구매 유보"},
+    {"order": 2, "match": "contains", "keyword": "SPBU|SHELL|EXXON|CHEVRON|WAWA|SUNOCO|GAS|FUEL|PARKING|UBER|LYFT|TAXI|TOLL", "category": "여비교통비", "applies_to": "common", "note": ""},
+    {"order": 3, "match": "contains", "keyword": "FASTENAL|HOME DEPOT|LOWES|GRAINGER|HARDWARE", "category": "소모품비", "applies_to": "common", "note": ""},
+    {"order": 4, "match": "contains", "keyword": "AIRLINE|DELTA|UNITED AIR|KOREAN AIR", "category": "항공료", "applies_to": "common", "note": ""},
+    {"order": 5, "match": "contains", "keyword": "HOTEL|MOTEL|MARRIOTT|HILTON|HYATT| INN", "category": "숙박비", "applies_to": "common", "note": ""},
+    {"order": 6, "match": "contains", "keyword": "ROAMING|AT&T|VERIZON|T-MOBILE|SIM", "category": "통신비", "applies_to": "common", "note": ""},
+    {"order": 7, "match": "contains", "keyword": "365 MARKET|MCDONALD|WENDY|CHICK|SUBWAY|BURGER|PIZZA|CAFE|CAFFE|RESTAURANT|ZIPBOB|LOW COUNTRY|ENMARKET|STARBUCK|KFC|GRILL|BBQ|COFFEE|DINER|TACO|CHIPOTLE|DUNKIN", "category": "식비", "applies_to": "haewoe", "note": ""},
+    {"order": 8, "match": "contains", "keyword": "편의점|음식|식당|주유|마트|카페", "category": "식비", "applies_to": "gukne", "note": "국내 업종명 기반(대략)"},
+    {"order": 9, "match": "regex", "keyword": "^[A-Z]{2,4}\\d{4,}$", "category": "", "applies_to": "haewoe", "note": "코드성 상호"}
+  ]
+}
