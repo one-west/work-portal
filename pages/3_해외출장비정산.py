@@ -5,6 +5,22 @@ import pandas as pd
 import streamlit as st
 from lib import expense
 
+
+def _num(x, default):
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return default
+    return default if v != v else v   # NaN check (v != v is True for NaN)
+
+
+def _txt(x):
+    if x is None:
+        return ""
+    s = str(x)
+    return "" if s.lower() == "nan" else s
+
+
 st.set_page_config(page_title="해외출장비 정산", layout="wide")
 st.title("해외출장비 정산서 자동 작성")
 
@@ -29,7 +45,14 @@ if f_gukne:
 
 master = {}
 if f_master:
-    master = expense.parse_card_master(expense.read_card_master(f_master))
+    _mname = (getattr(f_master, "name", "") or "").lower()
+    if _mname.endswith(".csv"):
+        _mdf = pd.read_csv(f_master, dtype=str)
+    elif _mname.endswith(".xls"):
+        _mdf = pd.read_excel(f_master, engine="xlrd", dtype=str)
+    else:
+        _mdf = pd.read_excel(f_master, dtype=str)
+    master = expense.parse_card_master(_mdf)
 
 # ── 3) 규칙 (세션 + 다운/업) ──
 with st.expander("분류 규칙 편집"):
@@ -80,25 +103,29 @@ for _, mrow in meta_df.iterrows():
     card = mrow["card_no"]
     crows = expense.filter_and_sort(rows, card)
     crows = expense.classify_rows(crows, rules)
+    traveler = _txt(mrow["출장자"])
     for r in crows:
-        if not r.user or r.user == "공용":
-            r.user = mrow["출장자"] or "공용"
+        if traveler:
+            r.user = traveler
+        elif not r.user:
+            r.user = "공용"
     st.markdown(f"**{label(card)}** — {len(crows)}건")
     detail_df = pd.DataFrame([{"날짜": r.date, "상호": r.shop, "항목": r.category,
                                "상세내역": r.detail, "USD": r.usd, "원화": r.krw,
                                "사용자": r.user} for r in crows])
     edited_detail = st.data_editor(detail_df, use_container_width=True, hide_index=True,
                                    key=f"detail_{card}",
+                                   disabled=["날짜", "상호", "USD", "원화"],
                                    column_config={"항목": st.column_config.SelectboxColumn(
                                        options=[""] + expense.CATEGORIES)})
     # 편집 반영
     for r, (_, d) in zip(crows, edited_detail.iterrows()):
         r.category, r.detail, r.user = d["항목"], d["상세내역"], d["사용자"]
-    meta = expense.Meta(traveler=mrow["출장자"], start_date=str(mrow["기간시작"]),
-                        end_date=str(mrow["기간종료"]), region=mrow["지역"],
-                        purpose=mrow["목적"], usd_rate=float(mrow["USD환율"]),
-                        idr_rate=float(mrow["IDR환율"]))
-    files[card] = (mrow["출장자"] or card, expense.build_settlement(crows, meta))
+    meta = expense.Meta(traveler=traveler, start_date=_txt(mrow["기간시작"]),
+                        end_date=_txt(mrow["기간종료"]), region=_txt(mrow["지역"]),
+                        purpose=_txt(mrow["목적"]), usd_rate=_num(mrow["USD환율"], 1470.0),
+                        idr_rate=_num(mrow["IDR환율"], 0.09))
+    files[card] = (traveler or card, expense.build_settlement(crows, meta))
 
 # ── 7) 다운로드 (단일=xlsx, 다중=ZIP) ──
 st.subheader("다운로드")
@@ -110,6 +137,6 @@ else:
     zbuf = io.BytesIO()
     with zipfile.ZipFile(zbuf, "w") as zf:
         for card, (name, data) in files.items():
-            zf.writestr(f"해외출장비 정산서_{name}.xlsx", data)
+            zf.writestr(f"해외출장비 정산서_{name}_{card[-4:]}.xlsx", data)
     st.download_button("정산서 전체 ZIP 다운로드", data=zbuf.getvalue(),
                        file_name="해외출장비 정산서_일괄.zip")
