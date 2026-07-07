@@ -1,4 +1,4 @@
-from lib.expense.parsers import to_number, normalize_card_no, extract_cards, normalize_haewoe, normalize_gukne, parse_card_master
+from lib.expense.parsers import to_number, normalize_card_no, extract_cards, normalize_haewoe, normalize_gukne, parse_card_master, filter_and_sort
 from lib.expense.models import Row
 import pandas as pd
 
@@ -76,3 +76,12 @@ def test_parse_card_master_detects_columns():
     assert info.traveler == "김동현"
     assert info.region == "미국 조지아"
     assert info.label == "해외출장4"
+
+def test_filter_and_sort():
+    rows = [
+        Row(date="2026.06.05", shop="B", usd=1, idr=0, krw=1, user="", source="haewoe", card_no="111"),
+        Row(date="2026.06.02", shop="A", usd=1, idr=0, krw=1, user="", source="haewoe", card_no="111"),
+        Row(date="2026.06.03", shop="C", usd=1, idr=0, krw=1, user="", source="haewoe", card_no="999"),
+    ]
+    out = filter_and_sort(rows, "111")
+    assert [r.shop for r in out] == ["A", "B"]

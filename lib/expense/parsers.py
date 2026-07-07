@@ -119,3 +119,7 @@ def parse_card_master(df):
             label=str(x.get(col_label, "")).strip() if col_label else "",
         )
     return out
+
+def filter_and_sort(rows, card_no):
+    subset = [r for r in rows if r.card_no == card_no]
+    return sorted(subset, key=lambda r: r.date)
