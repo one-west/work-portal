@@ -1,5 +1,6 @@
-from lib.expense.parsers import to_number, normalize_card_no, extract_cards
+from lib.expense.parsers import to_number, normalize_card_no, extract_cards, normalize_haewoe
 from lib.expense.models import Row
+import pandas as pd
 
 def test_plain_number():
     assert to_number("64,936") == 64936.0
@@ -33,3 +34,19 @@ def _row(card):
 def test_extract_cards_unique_ordered():
     rows = [_row("111"), _row("222"), _row("111")]
     assert extract_cards(rows) == ["111", "222"]
+
+def test_normalize_haewoe():
+    df = pd.DataFrame([
+        {"승인일": "2026.06.27", "가맹점명": "ENMARKET 1330", "카드번호": "4074-6721-9739-3852",
+         "이용자명": "공용", "현지이용금액": "41.65", "결제원금": "64,936"},
+    ])
+    rows = normalize_haewoe(df)
+    assert len(rows) == 1
+    r = rows[0]
+    assert r.source == "haewoe"
+    assert r.card_no == "4074672197393852"
+    assert r.usd == 41.65
+    assert r.idr == 0
+    assert r.krw == 64936.0
+    assert r.shop == "ENMARKET 1330"
+    assert r.user == "공용"
