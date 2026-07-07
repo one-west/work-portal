@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from dataclasses import dataclass, asdict
 
 CATEGORIES = [
@@ -32,3 +33,22 @@ def default_rules():
 
 def validate_category(cat):
     return cat == "" or cat in CATEGORIES
+
+def _matches(rule, text):
+    if rule.match == "regex":
+        return re.search(rule.keyword, text) is not None
+    return any(k and k in text for k in rule.keyword.split("|"))
+
+def classify(row, rules):
+    text = (row.industry if row.source == "gukne" else row.shop).upper()
+    for rule in sorted(rules, key=lambda r: r.order):
+        if rule.applies_to not in (row.source, "common"):
+            continue
+        if _matches(rule, text):
+            return rule.category
+    return ""
+
+def classify_rows(rows, rules):
+    for r in rows:
+        r.category = classify(r, rules)
+    return rows
