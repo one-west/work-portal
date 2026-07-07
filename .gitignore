@@ -182,3 +182,8 @@ pyrightconfig.json
 pyproject.toml
 uv.lock
 main.py
+
+# OpenDartReader corp_codes 캐시: seed 1개만 커밋하고, 앱이 매일 만들어내는
+# 날짜별 복사본은 무시한다. 이미 추적 중인 seed(...20250519.pkl)는 이 패턴에
+# 걸려도 계속 추적됨. seed 갱신 시에는 `git add -f docs_cache/<새 pkl>` 사용.
+docs_cache/opendartreader_corp_codes_*.pkl
