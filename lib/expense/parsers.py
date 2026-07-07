@@ -26,3 +26,13 @@ def to_number(x):
     except ValueError:
         return None
     return -val if neg else val
+
+def normalize_card_no(s):
+    return "".join(ch for ch in str(s) if ch.isdigit())
+
+def extract_cards(rows):
+    seen = []
+    for r in rows:
+        if r.card_no not in seen:
+            seen.append(r.card_no)
+    return seen

@@ -1,4 +1,5 @@
-from lib.expense.parsers import to_number
+from lib.expense.parsers import to_number, normalize_card_no, extract_cards
+from lib.expense.models import Row
 
 def test_plain_number():
     assert to_number("64,936") == 64936.0
@@ -20,3 +21,15 @@ def test_blank_and_dash():
     assert to_number("") is None
     assert to_number("-") is None
     assert to_number(None) is None
+
+def test_normalize_card_no():
+    assert normalize_card_no("4074-6721-9739-3852") == "4074672197393852"
+    assert normalize_card_no("4074 6721 9739 3852") == "4074672197393852"
+
+def _row(card):
+    return Row(date="2026.06.02", shop="X", usd=1, idr=0, krw=1,
+               user="공용", source="haewoe", card_no=card)
+
+def test_extract_cards_unique_ordered():
+    rows = [_row("111"), _row("222"), _row("111")]
+    assert extract_cards(rows) == ["111", "222"]
