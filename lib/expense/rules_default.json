@@ -8,7 +8,13 @@
     {"order": 5, "match": "contains", "keyword": "HOTEL|MOTEL|MARRIOTT|HILTON|HYATT| INN", "category": "숙박비", "applies_to": "common", "note": ""},
     {"order": 6, "match": "contains", "keyword": "ROAMING|AT&T|VERIZON|T-MOBILE|SIM", "category": "통신비", "applies_to": "common", "note": ""},
     {"order": 7, "match": "contains", "keyword": "365 MARKET|MCDONALD|WENDY|CHICK|SUBWAY|BURGER|PIZZA|CAFE|CAFFE|RESTAURANT|ZIPBOB|LOW COUNTRY|ENMARKET|STARBUCK|KFC|GRILL|BBQ|COFFEE|DINER|TACO|CHIPOTLE|DUNKIN", "category": "식비", "applies_to": "haewoe", "note": ""},
-    {"order": 8, "match": "contains", "keyword": "편의점|음식|식당|주유|마트|카페", "category": "식비", "applies_to": "gukne", "note": "국내 업종명 기반(대략)"},
-    {"order": 9, "match": "regex", "keyword": "^[A-Z]{2,4}\\d{4,}$", "category": "", "applies_to": "haewoe", "note": "코드성 상호"}
+    {"order": 8, "match": "contains", "keyword": "주유소|충전소", "category": "여비교통비", "applies_to": "gukne", "note": "국내 주유"},
+    {"order": 9, "match": "contains", "keyword": "택시|버스|철도|지하철|고속|시외|주차|통행|하이패스", "category": "여비교통비", "applies_to": "gukne", "note": "국내 교통"},
+    {"order": 10, "match": "contains", "keyword": "항공사", "category": "항공료", "applies_to": "gukne", "note": "국내 항공"},
+    {"order": 11, "match": "contains", "keyword": "숙박|호텔|모텔|여관|펜션|콘도|리조트", "category": "숙박비", "applies_to": "gukne", "note": "국내 숙박(기타숙박업 등)"},
+    {"order": 12, "match": "contains", "keyword": "통신|로밍|인터넷", "category": "통신비", "applies_to": "gukne", "note": "국내 통신"},
+    {"order": 13, "match": "contains", "keyword": "한식|중식|일식|양식|분식|음식|휴게음식|패스트푸드|제과|아이스크림|커피|음료|생선회|주점|호프|식당|뷔페", "category": "식비", "applies_to": "gukne", "note": "국내 음식점"},
+    {"order": 14, "match": "contains", "keyword": "편의점", "category": "식비", "applies_to": "gukne", "note": "편의점(소액 식품)"},
+    {"order": 15, "match": "regex", "keyword": "^[A-Z]{2,4}\\d{4,}$", "category": "", "applies_to": "haewoe", "note": "코드성 상호"}
   ]
 }

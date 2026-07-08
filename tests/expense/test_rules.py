@@ -47,6 +47,18 @@ def test_classify_code_regex_blank():
 def test_classify_gukne_uses_industry():
     assert classify(_g("편의점"), default_rules()) == "식비"
 
+def test_classify_gukne_industry_categories():
+    r = default_rules()
+    assert classify(_g("주유소"), r) == "여비교통비"      # 주유는 식비 아님(버그 회귀)
+    assert classify(_g("충전소"), r) == "여비교통비"
+    assert classify(_g("택시"), r) == "여비교통비"
+    assert classify(_g("기타숙박업"), r) == "숙박비"
+    assert classify(_g("항공사"), r) == "항공료"
+    assert classify(_g("한식"), r) == "식비"
+    assert classify(_g("일식/생선회집"), r) == "식비"
+    assert classify(_g("커피/음료전문점"), r) == "식비"
+    assert classify(_g("전자상거래PG"), r) == ""          # 애매 → 공란
+
 def test_classify_rows_sets_category():
     rows = [_h("MCDONALD'S"), _h("FOOD LION")]
     out = classify_rows(rows, default_rules())
