@@ -53,8 +53,8 @@ with st.container(border=True):
     st.caption("⬆️ 각 영역에 파일을 **끌어다 놓거나(드래그앤드롭)** **Upload 버튼**으로 선택할 수 있습니다.")
     _DND_HELP = "파일을 이 영역으로 드래그앤드롭하거나 Upload 버튼으로 선택하세요."
     c1, c2, c3 = st.columns(3)
-    f_haewoe = c1.file_uploader("해외매입내역 (.xls) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
-    f_gukne = c2.file_uploader("국내승인내역 (.xls, 선택) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
+    f_haewoe = c1.file_uploader("해외매입내역 (.xls/.xlsx) — 클릭 또는 드래그앤드롭", type=["xls", "xlsx"], help=_DND_HELP)
+    f_gukne = c2.file_uploader("국내승인내역 (.xls/.xlsx, 선택) — 클릭 또는 드래그앤드롭", type=["xls", "xlsx"], help=_DND_HELP)
     f_master = c3.file_uploader("카드 마스터 (.xls/.xlsx/.csv) — 클릭 또는 드래그앤드롭", type=["xls", "xlsx", "csv"], help=_DND_HELP)
 
 if not f_haewoe and not f_gukne:
@@ -62,23 +62,25 @@ if not f_haewoe and not f_gukne:
     st.stop()
 
 # ── 2) 파싱 ──
+def _read_any(uploaded):
+    """확장자별 엔진으로 업로드 파일 읽기 (.xls=xlrd, .xlsx=openpyxl, .csv). 문자열 DataFrame."""
+    name = (getattr(uploaded, "name", "") or "").lower()
+    if name.endswith(".csv"):
+        return pd.read_csv(uploaded, dtype=str)
+    if name.endswith(".xls"):
+        return pd.read_excel(uploaded, engine="xlrd", dtype=str)
+    return pd.read_excel(uploaded, engine="openpyxl", dtype=str)
+
 try:
     rows = []
     if f_haewoe:
-        rows += expense.normalize_haewoe(pd.read_excel(f_haewoe, engine="xlrd", dtype=str))
+        rows += expense.normalize_haewoe(_read_any(f_haewoe))
     if f_gukne:
-        rows += expense.normalize_gukne(pd.read_excel(f_gukne, engine="xlrd", dtype=str))
+        rows += expense.normalize_gukne(_read_any(f_gukne))
 
     master = {}
     if f_master:
-        _mname = (getattr(f_master, "name", "") or "").lower()
-        if _mname.endswith(".csv"):
-            _mdf = pd.read_csv(f_master, dtype=str)
-        elif _mname.endswith(".xls"):
-            _mdf = pd.read_excel(f_master, engine="xlrd", dtype=str)
-        else:
-            _mdf = pd.read_excel(f_master, dtype=str)
-        master = expense.parse_card_master(_mdf)
+        master = expense.parse_card_master(_read_any(f_master))
 except Exception as e:
     st.error(f"업로드 파일을 읽는 중 오류: {e}")
     st.stop()
