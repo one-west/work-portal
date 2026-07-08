@@ -77,6 +77,16 @@ def test_parse_card_master_detects_columns():
     assert info.region == "미국 조지아"
     assert info.label == "해외출장4"
 
+def test_parse_card_master_empty_cells_become_blank():
+    # 빈 출장자/지역 셀은 NaN → "" (문자열 "nan" 금지)
+    df = pd.DataFrame([
+        {"카드번호": "4074-6797-5760-8850", "용도": "해외출장1", "출장자명": None, "지역": None},
+    ])
+    info = parse_card_master(df)["4074679757608850"]
+    assert info.label == "해외출장1"
+    assert info.traveler == ""
+    assert info.region == ""
+
 def test_filter_and_sort():
     rows = [
         Row(date="2026.06.05", shop="B", usd=1, idr=0, krw=1, user="", source="haewoe", card_no="111"),

@@ -111,11 +111,18 @@ with st.expander("분류 규칙 편집"):
 rules = st.session_state["rules"]
 
 # ── 4) 카드 다중선택 (마스터 라벨) ──
-def label(card):
-    info = master.get(card)
-    if info and (info.label or info.traveler):
-        return f"{info.label} · {info.traveler} · {info.region} ({card[-4:]})".strip(" ·")
+def _fmt_card_no(card):
+    if card.isdigit() and len(card) >= 8:
+        return "-".join(card[i:i + 4] for i in range(0, len(card), 4))
     return card
+
+def label(card):
+    """카드번호 / 용도 / 출장자명 / 지역 — 빈 값은 '-'."""
+    info = master.get(card)
+    용도 = (info.label if info else "") or "-"
+    출장자 = (info.traveler if info else "") or "-"
+    지역 = (info.region if info else "") or "-"
+    return f"{_fmt_card_no(card)} / {용도} / {출장자} / {지역}"
 
 cards = expense.extract_cards(rows)
 picked = st.multiselect("정산할 카드 선택", options=cards, format_func=label)

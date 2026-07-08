@@ -100,6 +100,13 @@ def read_card_master(path):
         return pd.read_excel(path, engine="xlrd", dtype=str)
     return pd.read_excel(path, dtype=str)
 
+def _cell(v):
+    """빈 셀(NaN/None) 또는 'nan' 문자열을 ''로 정규화."""
+    if v is None or (isinstance(v, float) and pd.isna(v)):
+        return ""
+    s = str(v).strip()
+    return "" if s.lower() == "nan" else s
+
 def parse_card_master(df):
     col_card = _find_col(df, ["카드번호"])
     col_name = _find_col(df, ["출장자", "이름", "성명"])
@@ -114,9 +121,9 @@ def parse_card_master(df):
             continue
         out[key] = CardInfo(
             card_no=key,
-            traveler=str(x.get(col_name, "")).strip() if col_name else "",
-            region=str(x.get(col_region, "")).strip() if col_region else "",
-            label=str(x.get(col_label, "")).strip() if col_label else "",
+            traveler=_cell(x.get(col_name)) if col_name else "",
+            region=_cell(x.get(col_region)) if col_region else "",
+            label=_cell(x.get(col_label)) if col_label else "",
         )
     return out
 
