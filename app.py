@@ -31,4 +31,7 @@ for col, (title, desc, page) in zip(st.columns(3), TOOLS):
 
 st.divider()
 st.caption("좌측 사이드바에서 원하는 메뉴를 선택하세요. 추후 업무 도구가 지속적으로 추가될 예정입니다.")
-st.caption("🌓 화면 밝기: 우측 상단 **⋮ 메뉴** 상단의 **System / Light / Dark** 로 전환할 수 있습니다.")
+st.caption(
+    "🌓 화면 밝기: **앱 화면 우측 상단의 ⋮** 를 눌러 상단 **System / Light / Dark** 로 전환하세요. "
+    "(Streamlit Cloud 소유자 화면이면 맨 위 Share·⭐ 줄의 ⋮가 아니라, **그 아래 앱 자체의 ⋮**입니다.)"
+)
