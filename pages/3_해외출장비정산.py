@@ -145,7 +145,10 @@ def label(card):
     지역 = (info.region if info else "") or "-"
     return f"{_fmt_card_no(card)} / {용도} / {출장자} / {지역}"
 
-cards = expense.extract_cards(rows)
+tx_cards = expense.extract_cards(rows)
+# 카드마스터(로스터) 카드를 먼저 노출 → 이름 있는 카드는 거래파일 유무와 무관하게 항상 표시.
+# 그다음 마스터에 없는 거래 카드.
+cards = list(master.keys()) + [c for c in tx_cards if c not in master]
 picked = st.multiselect("정산할 카드 선택", options=cards, format_func=label)
 if not picked:
     st.stop()
@@ -167,6 +170,10 @@ for _, mrow in meta_df.iterrows():
     card = mrow["card_no"]
     crows = expense.filter_and_sort(rows, card)
     crows = expense.classify_rows(crows, rules)
+    if not crows:
+        st.warning(f"⚠️ {label(card)} — 업로드된 내역에 이 카드 사용 건이 없습니다. "
+                   "해당 원천파일(해외매입/국내승인)을 올렸는지 확인하세요.")
+        continue
     traveler = _txt(mrow["출장자"])
     for r in crows:
         if traveler:
