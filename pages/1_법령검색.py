@@ -121,7 +121,7 @@ if submitted and query:
             st.success(f"총 {len(df)}건 검색되었습니다.")
             st.dataframe(
                 df,
-                use_container_width=True,
+                width="stretch",
                 column_config={
                     "상세보기": st.column_config.LinkColumn("상세보기", display_text="열기")
                 },

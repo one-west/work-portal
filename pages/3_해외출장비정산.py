@@ -48,12 +48,14 @@ st.caption(f"🕒 업데이트: {_update_date()}")
 st.markdown("카드 매입/승인 내역과 카드 마스터를 올리면 **2-1 법인카드 탭**을 채운 정산서를 생성합니다.")
 
 # ── 1) 업로드 ──
-st.caption("⬆️ 각 영역에 파일을 **끌어다 놓거나(드래그앤드롭)** **Upload 버튼**으로 선택할 수 있습니다.")
-_DND_HELP = "파일을 이 영역으로 드래그앤드롭하거나 Upload 버튼으로 선택하세요."
-c1, c2, c3 = st.columns(3)
-f_haewoe = c1.file_uploader("해외매입내역 (.xls) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
-f_gukne = c2.file_uploader("국내승인내역 (.xls, 선택) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
-f_master = c3.file_uploader("카드 마스터 (.xls/.xlsx/.csv) — 클릭 또는 드래그앤드롭", type=["xls", "xlsx", "csv"], help=_DND_HELP)
+st.markdown("#### ① 파일 업로드")
+with st.container(border=True):
+    st.caption("⬆️ 각 영역에 파일을 **끌어다 놓거나(드래그앤드롭)** **Upload 버튼**으로 선택할 수 있습니다.")
+    _DND_HELP = "파일을 이 영역으로 드래그앤드롭하거나 Upload 버튼으로 선택하세요."
+    c1, c2, c3 = st.columns(3)
+    f_haewoe = c1.file_uploader("해외매입내역 (.xls) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
+    f_gukne = c2.file_uploader("국내승인내역 (.xls, 선택) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
+    f_master = c3.file_uploader("카드 마스터 (.xls/.xlsx/.csv) — 클릭 또는 드래그앤드롭", type=["xls", "xlsx", "csv"], help=_DND_HELP)
 
 if not f_haewoe and not f_gukne:
     st.info("해외매입 또는 국내승인 중 최소 하나를 업로드하세요.")
@@ -149,12 +151,16 @@ tx_cards = expense.extract_cards(rows)
 # 카드마스터(로스터) 카드를 먼저 노출 → 이름 있는 카드는 거래파일 유무와 무관하게 항상 표시.
 # 그다음 마스터에 없는 거래 카드.
 cards = list(master.keys()) + [c for c in tx_cards if c not in master]
-picked = st.multiselect("정산할 카드 선택", options=cards, format_func=label)
+
+st.markdown("#### ② 정산할 카드 선택")
+st.caption("표시: 카드번호 / 용도 / 출장자명 / 지역 · 여러 개 선택 가능 (카드마스터를 올리면 이름·지역이 자동 표시됩니다)")
+picked = st.multiselect("카드 선택", options=cards, format_func=label, label_visibility="collapsed")
 if not picked:
     st.stop()
 
 # ── 5) 카드별 메타 입력표 (마스터 프리필) ──
-st.subheader("카드별 출장 정보")
+st.markdown("#### ③ 출장 정보 · 명세 편집")
+st.caption("카드별 출장자·기간·지역·환율을 입력하고, 아래 명세표에서 항목/상세/사용자를 보정하세요.")
 meta_rows = []
 for card in picked:
     info = master.get(card, expense.CardInfo(card_no=card))
@@ -203,18 +209,20 @@ for _, mrow in meta_df.iterrows():
         continue
 
 # ── 7) 다운로드 (단일=xlsx, 다중=ZIP) ──
-st.subheader("다운로드")
+st.divider()
+st.markdown("#### ④ 다운로드")
 if not files:
     st.warning("생성된 정산서가 없습니다.")
     st.stop()
+st.success(f"{len(files)}건 정산서 생성 완료.")
 if len(files) == 1:
     name, data = next(iter(files.values()))
-    st.download_button(f"정산서 다운로드 ({name})", data=data,
+    st.download_button(f"⬇️ 정산서 다운로드 ({name})", data=data, type="primary",
                        file_name=f"해외출장비 정산서_{name}.xlsx")
 else:
     zbuf = io.BytesIO()
     with zipfile.ZipFile(zbuf, "w") as zf:
         for card, (name, data) in files.items():
             zf.writestr(f"해외출장비 정산서_{name}_{card[-4:]}.xlsx", data)
-    st.download_button("정산서 전체 ZIP 다운로드", data=zbuf.getvalue(),
+    st.download_button("⬇️ 정산서 전체 ZIP 다운로드", data=zbuf.getvalue(), type="primary",
                        file_name="해외출장비 정산서_일괄.zip")

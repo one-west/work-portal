@@ -325,7 +325,7 @@ if st.button("📥 재무제표 수집"):
     save_excel_with_comma_format(result_df, file_name)
 
     st.subheader(f"미리보기 (총 {len(result_df)}행)")
-    st.dataframe(result_df, use_container_width=True, hide_index=True)
+    st.dataframe(result_df, width="stretch", hide_index=True)
 
     with open(file_name, "rb") as f:
         st.download_button(
