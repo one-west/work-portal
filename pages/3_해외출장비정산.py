@@ -27,10 +27,12 @@ st.title("해외출장비 정산서 자동 작성")
 st.markdown("카드 매입/승인 내역과 카드 마스터를 올리면 **2-1 법인카드 탭**을 채운 정산서를 생성합니다.")
 
 # ── 1) 업로드 ──
+st.caption("⬆️ 각 영역에 파일을 **끌어다 놓거나(드래그앤드롭)** **Upload 버튼**으로 선택할 수 있습니다.")
+_DND_HELP = "파일을 이 영역으로 드래그앤드롭하거나 Upload 버튼으로 선택하세요."
 c1, c2, c3 = st.columns(3)
-f_haewoe = c1.file_uploader("해외매입내역 (.xls)", type=["xls"])
-f_gukne = c2.file_uploader("국내승인내역 (.xls, 선택)", type=["xls"])
-f_master = c3.file_uploader("카드 마스터 (.xls/.xlsx/.csv)", type=["xls", "xlsx", "csv"])
+f_haewoe = c1.file_uploader("해외매입내역 (.xls) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
+f_gukne = c2.file_uploader("국내승인내역 (.xls, 선택) — 클릭 또는 드래그앤드롭", type=["xls"], help=_DND_HELP)
+f_master = c3.file_uploader("카드 마스터 (.xls/.xlsx/.csv) — 클릭 또는 드래그앤드롭", type=["xls", "xlsx", "csv"], help=_DND_HELP)
 
 if not f_haewoe and not f_gukne:
     st.info("해외매입 또는 국내승인 중 최소 하나를 업로드하세요.")
