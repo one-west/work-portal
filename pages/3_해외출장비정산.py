@@ -1,9 +1,29 @@
 # pages/3_해외출장비정산.py
 import io
+import os
+import subprocess
+import datetime
 import zipfile
 import pandas as pd
 import streamlit as st
 from lib import expense
+
+
+@st.cache_data(show_spinner=False)
+def _update_date():
+    """마지막 업데이트 일시: git 최종 커밋 시각(없으면 파일 수정시각) — 배포 반영 확인용."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    try:
+        d = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cd", "--date=format:%Y-%m-%d %H:%M"],
+            cwd=repo, stderr=subprocess.DEVNULL, text=True,
+        ).strip()
+        if d:
+            return d
+    except Exception:
+        pass
+    ts = os.path.getmtime(os.path.abspath(__file__))
+    return datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M")
 
 
 def _num(x, default):
@@ -23,6 +43,7 @@ def _txt(x):
 
 st.set_page_config(page_title="해외출장비 정산", layout="wide")
 st.title("해외출장비 정산서 자동 작성")
+st.caption(f"🕒 업데이트: {_update_date()}")
 
 st.markdown("카드 매입/승인 내역과 카드 마스터를 올리면 **2-1 법인카드 탭**을 채운 정산서를 생성합니다.")
 
