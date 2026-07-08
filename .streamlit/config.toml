@@ -1,3 +1,13 @@
+# 커스텀 다크 테마(기본). 사용자는 우측 상단 ⋮ → Settings → Theme 에서
+# Light/Dark/System 으로 전환 가능(내장 토글 유지).
 [theme]
-primaryColor = "#2563eb"
+base = "dark"
+primaryColor = "#4f8df9"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#1b2130"
+textColor = "#e6e9ef"
 font = "sans serif"
+
+[theme.sidebar]
+backgroundColor = "#131722"
+secondaryBackgroundColor = "#1b2130"
