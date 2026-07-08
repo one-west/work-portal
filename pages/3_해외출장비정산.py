@@ -37,22 +37,26 @@ if not f_haewoe and not f_gukne:
     st.stop()
 
 # ── 2) 파싱 ──
-rows = []
-if f_haewoe:
-    rows += expense.normalize_haewoe(pd.read_excel(f_haewoe, engine="xlrd", dtype=str))
-if f_gukne:
-    rows += expense.normalize_gukne(pd.read_excel(f_gukne, engine="xlrd", dtype=str))
+try:
+    rows = []
+    if f_haewoe:
+        rows += expense.normalize_haewoe(pd.read_excel(f_haewoe, engine="xlrd", dtype=str))
+    if f_gukne:
+        rows += expense.normalize_gukne(pd.read_excel(f_gukne, engine="xlrd", dtype=str))
 
-master = {}
-if f_master:
-    _mname = (getattr(f_master, "name", "") or "").lower()
-    if _mname.endswith(".csv"):
-        _mdf = pd.read_csv(f_master, dtype=str)
-    elif _mname.endswith(".xls"):
-        _mdf = pd.read_excel(f_master, engine="xlrd", dtype=str)
-    else:
-        _mdf = pd.read_excel(f_master, dtype=str)
-    master = expense.parse_card_master(_mdf)
+    master = {}
+    if f_master:
+        _mname = (getattr(f_master, "name", "") or "").lower()
+        if _mname.endswith(".csv"):
+            _mdf = pd.read_csv(f_master, dtype=str)
+        elif _mname.endswith(".xls"):
+            _mdf = pd.read_excel(f_master, engine="xlrd", dtype=str)
+        else:
+            _mdf = pd.read_excel(f_master, dtype=str)
+        master = expense.parse_card_master(_mdf)
+except Exception as e:
+    st.error(f"업로드 파일을 읽는 중 오류: {e}")
+    st.stop()
 
 # ── 3) 규칙 (세션 + 다운/업) ──
 with st.expander("분류 규칙 편집"):
@@ -65,7 +69,37 @@ with st.expander("분류 규칙 편집"):
     edited = st.data_editor(rules_df, num_rows="dynamic", use_container_width=True,
                             column_config={"category": st.column_config.SelectboxColumn(
                                 options=[""] + expense.CATEGORIES)})
-    st.session_state["rules"] = [expense.Rule(**r) for r in edited.to_dict("records")]
+    _valid_rules = []
+    _dropped = 0
+    for r in edited.to_dict("records"):
+        kw = r.get("keyword")
+        order = r.get("order")
+        match = r.get("match")
+        if kw is None or (isinstance(kw, float) and kw != kw) or str(kw).strip() == "":
+            _dropped += 1
+            continue
+        if order is None or (isinstance(order, float) and order != order):
+            _dropped += 1
+            continue
+        if match not in ("contains", "regex"):
+            _dropped += 1
+            continue
+        try:
+            order = int(order)
+        except (TypeError, ValueError):
+            _dropped += 1
+            continue
+        r = dict(r)
+        r["order"] = order
+        r["keyword"] = str(kw)
+        r["category"] = _txt(r.get("category"))
+        r["applies_to"] = _txt(r.get("applies_to"))
+        r["note"] = _txt(r.get("note"))
+        r["match"] = str(match)
+        _valid_rules.append(expense.Rule(**r))
+    if _dropped:
+        st.caption(f"불완전한 규칙 {_dropped}건은 무시되었습니다.")
+    st.session_state["rules"] = _valid_rules
     import json
     st.download_button("규칙 JSON 다운로드",
                        data=json.dumps(expense.dump_rules(st.session_state["rules"]),
@@ -125,10 +159,17 @@ for _, mrow in meta_df.iterrows():
                         end_date=_txt(mrow["기간종료"]), region=_txt(mrow["지역"]),
                         purpose=_txt(mrow["목적"]), usd_rate=_num(mrow["USD환율"], 1470.0),
                         idr_rate=_num(mrow["IDR환율"], 0.09))
-    files[card] = (traveler or card, expense.build_settlement(crows, meta))
+    try:
+        files[card] = (traveler or card, expense.build_settlement(crows, meta))
+    except Exception as e:
+        st.error(f"'{label(card)}' 정산서 생성 실패: {e}")
+        continue
 
 # ── 7) 다운로드 (단일=xlsx, 다중=ZIP) ──
 st.subheader("다운로드")
+if not files:
+    st.warning("생성된 정산서가 없습니다.")
+    st.stop()
 if len(files) == 1:
     name, data = next(iter(files.values()))
     st.download_button(f"정산서 다운로드 ({name})", data=data,
