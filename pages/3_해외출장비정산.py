@@ -171,6 +171,11 @@ for card in picked:
                       "USD환율": 1470.0, "IDR환율": 0.09})
 meta_df = st.data_editor(pd.DataFrame(meta_rows), width="stretch",
                          column_config={"card_no": None}, hide_index=True)
+st.caption(
+    "💱 **USD·IDR환율**: **출국일 기준 매매기준율**을 입력하세요(기본 1470 / 0.09는 예시 초기값). "
+    "이 값은 요약탭 환율표에 반영되어 **현금·개인경비 탭 계산 기준**으로 쓰입니다. "
+    "**2-1 법인카드 탭의 건별 환율(J·K)은 실제 카드 데이터(결제원금÷현지화)로 계산되어 이 값과 무관합니다.**"
+)
 
 # ── 6) 카드별 편집표 + 생성 ──
 files = {}
