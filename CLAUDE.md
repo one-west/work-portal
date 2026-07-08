@@ -25,8 +25,11 @@ Streamlit Cloud는 대시보드 Secrets에서 동일한 키를 설정.
 ## Testing
 
 ```bash
-python -m pytest tests/          # 정산 로직(lib/expense) 단위·통합 테스트
+pip install -r requirements-dev.txt   # pytest 등 개발 의존성 (런타임 requirements.txt와 분리)
+python -m pytest tests/               # 정산 로직(lib/expense) 단위·통합 테스트
 ```
+
+`pytest`는 런타임에 불필요하므로 `requirements.txt`가 아니라 `requirements-dev.txt`에만 둔다(배포 시 설치 시간 절약).
 
 `lib/expense/*`는 streamlit 비의존 순수 함수라 테스트가 가능. 템플릿 로드 시 openpyxl의 "Data Validation extension is not supported" 경고는 x14 드롭다운 관련 알려진 무해 경고.
 

@@ -7,4 +7,3 @@ python-dotenv
 opendartreader
 requests
 xlrd
-pytest

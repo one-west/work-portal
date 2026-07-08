@@ -89,7 +89,7 @@ with st.expander("분류 규칙 편집"):
     if "rules" not in st.session_state:
         st.session_state["rules"] = expense.default_rules()
     rules_df = pd.DataFrame([r.__dict__ for r in st.session_state["rules"]])
-    edited = st.data_editor(rules_df, num_rows="dynamic", use_container_width=True,
+    edited = st.data_editor(rules_df, num_rows="dynamic", width="stretch",
                             column_config={"category": st.column_config.SelectboxColumn(
                                 options=[""] + expense.CATEGORIES)})
     _valid_rules = []
@@ -161,7 +161,7 @@ for card in picked:
     meta_rows.append({"카드": label(card), "card_no": card, "출장자": info.traveler,
                       "기간시작": "", "기간종료": "", "지역": info.region, "목적": "",
                       "USD환율": 1470.0, "IDR환율": 0.09})
-meta_df = st.data_editor(pd.DataFrame(meta_rows), use_container_width=True,
+meta_df = st.data_editor(pd.DataFrame(meta_rows), width="stretch",
                          column_config={"card_no": None}, hide_index=True)
 
 # ── 6) 카드별 편집표 + 생성 ──
@@ -184,7 +184,7 @@ for _, mrow in meta_df.iterrows():
     detail_df = pd.DataFrame([{"날짜": r.date, "상호": r.shop, "항목": r.category,
                                "상세내역": r.detail, "USD": r.usd, "원화": r.krw,
                                "사용자": r.user} for r in crows])
-    edited_detail = st.data_editor(detail_df, use_container_width=True, hide_index=True,
+    edited_detail = st.data_editor(detail_df, width="stretch", hide_index=True,
                                    key=f"detail_{card}",
                                    disabled=["날짜", "상호", "USD", "원화"],
                                    column_config={"항목": st.column_config.SelectboxColumn(
